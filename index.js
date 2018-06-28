@@ -1,7 +1,6 @@
 const http = require("http");
 const concat = require("concat-stream");
 
-const throwListen = function(e) { throw e };
 const buildOptions = function(method, port, path) {
   const options = { port, path, method };
   return options;
@@ -29,7 +28,7 @@ const request = function(app) {
           })
           req.on('error', reject)
           req.end();
-        }).catch(throwListen)
+        }).catch(reject)
       });
     },
     post: function(path, postData) {
@@ -45,7 +44,7 @@ const request = function(app) {
           req.setHeader('Content-Type', 'application/json');
           req.write(JSON.stringify(postData));
           req.end();
-        }).catch(throwListen)
+        }).catch(reject)
       })
     },
     end : function() {

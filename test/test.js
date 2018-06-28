@@ -70,6 +70,24 @@ test("post - express", (t) => {
   comm.post("/user/a1234/messages?language=en", {num:34})
   .then((res) => {
     t.equals(res.text, "doubled: 68", "postData received and text is property assigned to response");
-    comm.end();
+    comm.close();
   })
 });
+
+test("auto fail listen", (t) => {
+  const http = require("http");
+  t.plan(1);
+  http.Server.prototype.listen = function(port, cb) {
+    cb(new Error("Cant listen"));
+  }
+  const express = require("express");
+  const app = express();
+  const comm = request(app)
+  .get("/foo")
+  .then(() => {
+    console.log("Nope")
+  })
+  .catch((e) => {
+    t.equal(e.message, "Cant listen");
+  });
+})
