@@ -42,7 +42,8 @@ const request = function(app) {
             }))
           })
           req.on('error', reject)
-          req.write(postData);
+          req.setHeader('Content-Type', 'application/json');
+          req.write(JSON.stringify(postData));
           req.end();
         }).catch(throwListen)
       })
