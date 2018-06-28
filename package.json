@@ -8,9 +8,9 @@
     "coverage": "nyc npm test report --reporter=html --reporter=text",
     "coveralls": "nyc npm test report --reporter=text-lcov | coveralls"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["supertest", "testing", "http testing"],
+  "author": "David Wee <rook2pawn@gmail.com> (http://rook2pawn.com)",
+  "license": "MIT",
   "dependencies": {
     "concat-stream": "^1.6.2"
   },
