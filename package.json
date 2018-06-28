@@ -1,6 +1,6 @@
 {
   "name": "supertest-light",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,11 @@
     "coverage": "nyc npm test report --reporter=html --reporter=text",
     "coveralls": "nyc npm test report --reporter=text-lcov | coveralls"
   },
-  "keywords": ["supertest", "testing", "http testing"],
+  "keywords": [
+    "supertest",
+    "testing",
+    "http testing"
+  ],
   "author": "David Wee <rook2pawn@gmail.com> (http://rook2pawn.com)",
   "license": "MIT",
   "dependencies": {
