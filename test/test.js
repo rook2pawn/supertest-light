@@ -37,6 +37,25 @@ test("get - express", (t) => {
 
 });
 
+test("post - router-middleware", (t) => {
+  t.plan(3);
+  const Router = require("router-middleware");
+  const app = Router();
+  app.post("/user/:userId/messages", Router.bodyParser, (req,res,next) => {
+    t.deepEquals(req.query, {language:"en"}, "Querystring is received");
+    t.equals(req.params.userId, "a1234", "path parameters is received");
+    return res.end(`doubled: ${req.body.num * 2}`)
+  })
+
+  const comm = request(app);
+  comm.post("/user/a1234/messages?language=en", {num:34})
+  .then((res) => {
+    t.equals(res.text, "doubled: 68", "postData received and text is property assigned to response");
+    comm.end();
+  })
+});
+
+
 test("post - express", (t) => {
   t.plan(3);
   const express = require("express");
@@ -53,5 +72,4 @@ test("post - express", (t) => {
     t.equals(res.text, "doubled: 68", "postData received and text is property assigned to response");
     comm.end();
   })
-
 });
