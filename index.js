@@ -8,9 +8,8 @@ var request = function(app) {
     };
     return options;
   }
-  var port = ~~(Math.random() * 10000) + 2000;
-  var server = http.createServer(app);
-  server.listen(port);
+  const port = ~~(Math.random() * 10000) + 2000;
+  const server = http.createServer(app).listen(port);
   return {
     get: function(path) {
       return new Promise((resolve, reject) => {
@@ -49,3 +48,4 @@ var request = function(app) {
   }
 }
 
+module.exports = exports = request;
