@@ -9,12 +9,13 @@ test("get - router-middleware", (t) => {
     t.equals(req.params.userId, "a1234", "path parameters is received");
     return res.end("beep")
   })
-
-  const comm = request(app);
-  comm.get("/user/a1234/messages?language=en")
+  request(app)
+  .get("/user/a1234/messages?language=en")
   .then((res) => {
     t.equals(res.text, "beep", "text is property assigned to response");
-    comm.end();
+  })
+  .catch((e) => {
+    console.log("caught e:", e);
   })
 
 });
@@ -28,13 +29,11 @@ test("get - express", (t) => {
     return res.end("beep")
   })
 
-  const comm = request(app);
-  comm.get("/user/a1234/messages?language=en")
+  request(app)
+  .get("/user/a1234/messages?language=en")
   .then((res) => {
     t.equals(res.text, "beep", "text is property assigned to response");
-    comm.end();
   })
-
 });
 
 test("post - router-middleware", (t) => {
@@ -47,11 +46,10 @@ test("post - router-middleware", (t) => {
     return res.end(`doubled: ${req.body.num * 2}`)
   })
 
-  const comm = request(app);
-  comm.post("/user/a1234/messages?language=en", {num:34})
+  request(app)
+  .post("/user/a1234/messages?language=en", {num:34})
   .then((res) => {
     t.equals(res.text, "doubled: 68", "postData received and text is property assigned to response");
-    comm.end();
   })
 });
 
@@ -66,28 +64,69 @@ test("post - express", (t) => {
     return res.end(`doubled: ${req.body.num * 2}`)
   })
 
-  const comm = request(app);
-  comm.post("/user/a1234/messages?language=en", {num:34})
+  request(app)
+  .post("/user/a1234/messages?language=en", {num:34})
   .then((res) => {
     t.equals(res.text, "doubled: 68", "postData received and text is property assigned to response");
-    comm.close();
   })
 });
 
-test("auto fail listen", (t) => {
+
+test("set headers", (t) => {
+  t.plan(4);
+  const app = require("express")();
+  app.get("/user/:userId/messages", (req,res,next) => {
+    t.equals(req.headers['user-agent'], "Supertest-light")
+    t.deepEquals(req.query, {language:"en"}, "Querystring is received");
+    t.equals(req.params.userId, "a1234", "path parameters is received");
+    return res.end("beep")
+  })
+
+  request(app)
+  .set("User-Agent", "Supertest-light")
+  .get("/user/a1234/messages?language=en")
+  .then((res) => {
+    t.equals(res.text, "beep", "text is property assigned to response");
+  })
+
+});
+
+
+test("fail - listen", (t) => {
   const http = require("http");
   t.plan(1);
+  const restore = http.Server.prototype.listen
   http.Server.prototype.listen = function(port, cb) {
     cb(new Error("Cant listen"));
   }
   const express = require("express");
   const app = express();
-  const comm = request(app)
+  request(app)
   .get("/foo")
   .then(() => {
     console.log("Nope")
   })
   .catch((e) => {
     t.equal(e.message, "Cant listen");
+  })
+  .then(() => {
+    http.Server.prototype.listen = restore;
+  })
+})
+
+test("fail - force error on socket", (t) => {
+  t.plan(1)
+  const express = require("express");
+  const app = express();
+  app.get("/foo", (req) => {
+    req.socket.destroy();
+  })
+  request(app)
+  .get("/foo")
+  .then(() => {
+    console.log("Nope")
+  })
+  .catch((e) => {
+    t.equal(e.message, "socket hang up");
   });
 })

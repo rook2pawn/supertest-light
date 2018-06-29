@@ -1,59 +1,79 @@
 const http = require("http");
 const concat = require("concat-stream");
 
-const buildOptions = function(method, port, path) {
-  const options = { port, path, method };
-  return options;
-};
 const request = function(app) {
   let server;
-  const pendingPort = new Promise((resolve,reject) => {
-    server = http.createServer(app).listen(0, (e) => {
+  const headers = {};
+  let path;
+  let method;
+  let postData;
+  const obj = {};
+
+  const buildOptions = function(method, port, path) {
+    const options = { port, path, method, headers };
+    return options;
+  };
+
+  const pendingPort = new Promise((resolve, reject) => {
+    server = http.createServer(app).listen(0, e => {
       if (e) {
-        return reject(e)
+        return reject(e);
       } else {
         return resolve(server.address().port);
       }
     });
   });
-  return {
-    get: function(path) {
-      return new Promise((resolve, reject) => {
-        pendingPort.then((port) => {
-          const req = http.request(buildOptions("GET", port, path), (res) => {
-            res.pipe(concat((body) => {
-              res.text = body.toString();
-              resolve(res)
-            }))
+
+  obj.then = function(resolve, reject) {
+    var x = new Promise((innerResolve, innerReject) => {
+      var close = function(e, _reject) {
+        if (server) {
+          server.close(() => {
+            _reject(e);
           })
-          req.on('error', reject)
+        } else {
+          _reject(e)
+        }
+      }
+      pendingPort
+        .then(port => {
+          const req = http.request(buildOptions(method, port, path), res => {
+            res.pipe(
+              concat(body => {
+                res.text = body.toString();
+                server.close(() => {
+                  innerResolve(res);
+                })
+              })
+            );
+          });
+          if (method == "POST") {
+            req.setHeader("Content-Type", "application/json");
+            req.write(JSON.stringify(postData));
+          }
+          req.on("error",(e) => close(e,innerReject));
           req.end();
-        }).catch(reject)
-      });
-    },
-    post: function(path, postData) {
-      return new Promise((resolve, reject) => {
-        pendingPort.then((port) => {
-          const req = http.request(buildOptions("POST", port, path), (res) => {
-            res.pipe(concat((body) => {
-              res.text = body.toString();
-              resolve(res)
-            }))
-          })
-          req.on('error', reject)
-          req.setHeader('Content-Type', 'application/json');
-          req.write(JSON.stringify(postData));
-          req.end();
-        }).catch(reject)
-      })
-    },
-    end : function() {
-      server.close();
-    },
-    close : function() {
-      server.close();
-    }
-  }
-}
+        })
+        .catch((e) => close(e,innerReject));
+    });
+    return x.then(resolve, reject);
+  };
+  obj.set = function(key, value) {
+    headers[key] = value;
+    return obj;
+  };
+  obj.get = function(_path) {
+    method = "GET";
+    path = _path;
+    return obj;
+  };
+  obj.post = function(_path, _postData) {
+    method = "POST";
+    path = _path;
+    postData = _postData;
+    return obj;
+  };
+  return obj;
+};
 
 module.exports = exports = request;
