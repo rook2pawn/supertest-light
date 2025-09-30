@@ -7,7 +7,6 @@
 | Code Coverage | [![Coverage Status](https://coveralls.io/repos/github/rook2pawn/supertest-light/badge.svg?branch=master)](https://coveralls.io/github/rook2pawn/supertest-light?branch=master) |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 
-
 # supertest-light
 
 supertest-light is
@@ -16,45 +15,45 @@ supertest-light is
 - much smaller
 - and removes idiosyncratic aspects such as `expect`
 
-## .get(path)
+## usage
 
-```javascript
+Example
+
+```js
 const request = require("supertest-light");
 const assert = require("assert");
-const app = require("express")();
+const express = require("express");
 
-app.get("/user/:username/messages", (req, res, next) => {
+const app = express();
+app.get("/user/:username/messages", (req, res) => {
   assert.equal(req.headers["user-agent"], "Supertest-Light");
-  return res.end(`Hello ${req.params.username}!`);
+  res.end(`Hello ${req.params.username}!`);
 });
 
-request(app)
-  .set("User-Agent", "Supertest-Light")
-  .get("/user/bart/messages")
-  .then(res => {
-    assert.equal(res.text, "Hello bart!");
-  });
+(async () => {
+  const res = await request(app)
+    .set("User-Agent", "Supertest-Light")
+    .get("/user/bart/messages");
+  assert.equal(res.text, "Hello bart!");
+})();
 ```
 
-## .post(path, postData)
+Example
 
-```javascript
+```js
 const request = require("supertest-light");
 const express = require("express");
 const assert = require("assert");
 
 const app = express();
-app.post("/user/:userId/messages", express.json(), (req, res, next) => {
-  return res.end(`doubled: ${req.body.num * 2}`);
+app.post("/user/:userId/messages", express.json(), (req, res) => {
+  res.end(`doubled: ${req.body.num * 2}`);
 });
 
-request(app)
-  .post("/user/a1234/messages?language=en", { num: 34 })
-  .then(res => {
-    assert.equal(
-      res.text,
-      "doubled: 68",
-      "postData received and text is property assigned to response"
-    );
+(async () => {
+  const res = await request(app).post("/user/a1234/messages?language=en", {
+    num: 34,
   });
+  assert.equal(res.text, "doubled: 68");
+})();
 ```

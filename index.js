@@ -1,79 +1,119 @@
-const http = require("http");
-const concat = require("concat-stream");
+// index.js
+const { createServer } = require("http");
 
-const request = function(app) {
+/**
+ * Minimal request helper for express/connect-style apps.
+ * Node 18+ required (uses global fetch).
+ */
+function request(app) {
   let server;
-  const headers = {};
-  let path;
-  let method;
-  let postData;
-  const obj = {};
+  const headers = new Headers();
+  let method = "GET";
+  let path = "/";
+  let bodyData;
 
-  const buildOptions = function(method, port, path) {
-    const options = { port, path, method, headers };
-    return options;
-  };
-
-  const pendingPort = new Promise((resolve, reject) => {
-    server = http.createServer(app).listen(0, e => {
-      if (e) {
-        return reject(e);
-      } else {
-        return resolve(server.address().port);
-      }
-    });
-  });
-
-  obj.then = function(resolve, reject) {
-    var x = new Promise((innerResolve, innerReject) => {
-      var close = function(e, _reject) {
-        if (server) {
-          server.close(() => {
-            _reject(e);
-          })
+  // internal: start ephemeral server and resolve port
+  const getPort = () =>
+    new Promise((resolve, reject) => {
+      server = createServer(app);
+      // Bind to loopback to avoid firewall dialogs on some systems
+      server.listen(0, "127.0.0.1", () => {
+        const addr = server.address();
+        if (!addr || typeof addr.port !== "number") {
+          reject(new Error("Failed to acquire port"));
         } else {
-          _reject(e)
+          resolve(addr.port);
+        }
+      });
+      server.on("error", reject);
+    });
+
+  // core execution wrapped to make the object "thenable"
+  const run = async () => {
+    const port = await getPort();
+    const url = `http://127.0.0.1:${port}${path}`;
+
+    try {
+      let body = undefined;
+
+      // If user passed an object, default to JSON
+      if (bodyData !== undefined) {
+        if (
+          typeof bodyData === "object" &&
+          bodyData !== null &&
+          !(bodyData instanceof Buffer) &&
+          !(bodyData instanceof Uint8Array)
+        ) {
+          if (!headers.has("content-type")) {
+            headers.set("content-type", "application/json");
+          }
+          body = JSON.stringify(bodyData);
+        } else {
+          body = bodyData;
         }
       }
-      pendingPort
-        .then(port => {
-          const req = http.request(buildOptions(method, port, path), res => {
-            res.pipe(
-              concat(body => {
-                res.text = body.toString();
-                server.close(() => {
-                  innerResolve(res);
-                })
-              })
-            );
-          });
-          if (method == "POST") {
-            req.setHeader("Content-Type", "application/json");
-            req.write(JSON.stringify(postData));
-          }
-          req.on("error",(e) => close(e,innerReject));
-          req.end();
-        })
-        .catch((e) => close(e,innerReject));
-    });
-    return x.then(resolve, reject);
-  };
-  obj.set = function(key, value) {
-    headers[key] = value;
-    return obj;
-  };
-  obj.get = function(_path) {
-    method = "GET";
-    path = _path;
-    return obj;
-  };
-  obj.post = function(_path, _postData) {
-    method = "POST";
-    path = _path;
-    postData = _postData;
-    return obj;
-  };
-  return obj;
-};
 
-module.exports = exports = request;
+      const res = await fetch(url, {
+        method,
+        headers,
+        body,
+      });
+
+      const text = await res.text();
+      const out = {
+        statusCode: res.status,
+        headers: Object.fromEntries(res.headers),
+        text,
+      };
+
+      return out;
+    } finally {
+      // Always close to free the ephemeral port
+      if (server) {
+        await new Promise((r) => server.close(r));
+      }
+    }
+  };
+
+  // Build a tiny chainable interface
+  const api = {
+    set(key, value) {
+      headers.set(key, value);
+      return api;
+    },
+    get(_path) {
+      method = "GET";
+      path = _path;
+      bodyData = undefined;
+      return api;
+    },
+    post(_path, _body) {
+      method = "POST";
+      path = _path;
+      bodyData = _body;
+      return api;
+    },
+    // Optional: generic method if you ever want it
+    send(_method, _path, _body) {
+      method = _method.toUpperCase();
+      path = _path;
+      bodyData = _body;
+      return api;
+    },
+    // Make it awaitable like a Promise
+    then(onFulfilled, onRejected) {
+      return run().then(onFulfilled, onRejected);
+    },
+    catch(onRejected) {
+      return run().catch(onRejected);
+    },
+    finally(onFinally) {
+      return run().finally(onFinally);
+    },
+  };
+
+  return api;
+}
+
+module.exports = request;
+module.exports.default = request;
