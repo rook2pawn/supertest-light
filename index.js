@@ -22,6 +22,7 @@ function request(app) {
         if (!addr || typeof addr.port !== "number") {
           reject(new Error("Failed to acquire port"));
         } else {
+          console.log("Listening on port", addr.port);
           resolve(addr.port);
         }
       });
