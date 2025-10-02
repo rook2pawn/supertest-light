@@ -1,12 +1,3 @@
-| Node 7  | [![Build Status](https://travis-ci.org/rook2pawn/supertest-light.svg?branch=master)](https://travis-ci.org/rook2pawn/supertest-light) | Node 8  | [![Build Status](https://travis-ci.org/rook2pawn/supertest-light.svg?branch=master)](https://travis-ci.org/rook2pawn/supertest-light) |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Node 9  | [![Build Status](https://travis-ci.org/rook2pawn/supertest-light.svg?branch=master)](https://travis-ci.org/rook2pawn/supertest-light) | Node 10 | [![Build Status](https://travis-ci.org/rook2pawn/supertest-light.svg?branch=master)](https://travis-ci.org/rook2pawn/supertest-light) |
-| Node 11 | [![Build Status](https://travis-ci.org/rook2pawn/supertest-light.svg?branch=master)](https://travis-ci.org/rook2pawn/supertest-light) | Node 12 | [![Build Status](https://travis-ci.org/rook2pawn/supertest-light.svg?branch=master)](https://travis-ci.org/rook2pawn/supertest-light) |
-| Node 13 | [![Build Status](https://travis-ci.org/rook2pawn/supertest-light.svg?branch=master)](https://travis-ci.org/rook2pawn/supertest-light) |         |                                                                                                                                       |
-
-| Code Coverage | [![Coverage Status](https://coveralls.io/repos/github/rook2pawn/supertest-light/badge.svg?branch=master)](https://coveralls.io/github/rook2pawn/supertest-light?branch=master) |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-
 # supertest-light
 
 supertest-light is
