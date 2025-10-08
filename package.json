@@ -13,10 +13,9 @@
   ],
   "author": "David Wee <rook2pawn@gmail.com> (http://rook2pawn.com)",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "express": "^4.16.3",
-    "router-middleware": "^3.0.6",
+    "router-middleware": "^6.0.5",
     "tape": "^4.9.1"
   }
 }

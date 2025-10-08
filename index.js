@@ -12,6 +12,11 @@ function request(app) {
   let path = "/";
   let bodyData;
 
+  // be reasonable by default
+  if (!headers.has("accept")) {
+    headers.set("accept", "application/json, text/plain;q=0.9, */*;q=0.8");
+  }
+
   // internal: start ephemeral server and resolve port
   const getPort = () =>
     new Promise((resolve, reject) => {
@@ -61,12 +66,22 @@ function request(app) {
       });
 
       const text = await res.text();
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+      const isJSON = ct.startsWith("application/json");
+      let parsed;
+      if (isJSON && text !== "") {
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          /* leave undefined */
+        }
+      }
       const out = {
         statusCode: res.status,
         headers: Object.fromEntries(res.headers),
         text,
+        body: parsed,
       };
-
       return out;
     } finally {
       // Always close to free the ephemeral port
