@@ -15,7 +15,7 @@
   "license": "MIT",
   "devDependencies": {
     "express": "^4.16.3",
-    "router-middleware": "^6.0.5",
+    "router-middleware": "^6.1.4",
     "tape": "^4.9.1"
   }
 }

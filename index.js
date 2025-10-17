@@ -101,30 +101,20 @@ function request(app) {
       method = "GET";
       path = _path;
       bodyData = undefined;
-      return api;
+      return run();
     },
     post(_path, _body) {
       method = "POST";
       path = _path;
       bodyData = _body;
-      return api;
+      return run();
     },
     // Optional: generic method if you ever want it
     send(_method, _path, _body) {
       method = _method.toUpperCase();
       path = _path;
       bodyData = _body;
-      return api;
-    },
-    // Make it awaitable like a Promise
-    then(onFulfilled, onRejected) {
-      return run().then(onFulfilled, onRejected);
-    },
-    catch(onRejected) {
-      return run().catch(onRejected);
-    },
-    finally(onFinally) {
-      return run().finally(onFinally);
+      return run();
     },
   };
 
